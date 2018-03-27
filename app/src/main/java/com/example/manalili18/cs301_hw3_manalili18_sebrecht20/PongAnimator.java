@@ -16,16 +16,16 @@ import java.util.Random;
  * @author Chris Sebrechts
  * @version March 2018
  */
-public class TestAnimator implements Animator {
+public class PongAnimator implements Animator {
 
 	private AnimationSurface animationSurface;
 	private MainActivity mainActivity;
-	private Random random = new Random();
+	private Random random = new Random();//the ranndom function
 	private final int wallWidth = 25;
-	private final int paddleWidth = 10;
+	private final int paddleWidth = 20;
 	private int width; // width of surfaceView
 	private int height; // height of surfaceview
-	private int halfPaddleSize;
+	private int halfPaddleSize = 370;
 	private boolean isReady = true; // is player ready for ball?
 
 	//ball variables
@@ -34,6 +34,17 @@ public class TestAnimator implements Animator {
 	private float[] ballAcc;
 	private int ballRad = 40; // ball radius
 
+	private float paddlePos = wallWidth + halfPaddleSize;
+	private int score = 0;
+
+	Bitmap cheesecake;
+
+	//opponent variables
+	private int halfPaddleSizeOpponent = 200;
+	private float paddlePosOpponent = wallWidth + halfPaddleSizeOpponent;
+	private float opponentSpeed = 20.0f; //This is how fast the actual paddle moves for the AI
+
+
 	/**
 	 * Create a new TestAnimator object with references to the AnimationSurface and MainActivity
 	 * for instance variables and surface size. Also set up ball variables
@@ -41,7 +52,7 @@ public class TestAnimator implements Animator {
 	 * @param animSur
 	 * @param activity
 	 */
-	public TestAnimator (AnimationSurface animSur, MainActivity activity) {
+	public PongAnimator (AnimationSurface animSur, MainActivity activity) {
 		//AnimationSurface and MainActivity
 		this.animationSurface = animSur;
 		this.mainActivity = activity;
@@ -50,6 +61,11 @@ public class TestAnimator implements Animator {
 		ballPos = new float[] {0,0};
 		ballVel = randomVelocity();
 		ballAcc = new float[] {0,0};
+
+		cheesecake = BitmapFactory.decodeResource(mainActivity.getResources(),
+				R.drawable.cheesecake);
+		//The following below makes the acutal size of the cheesecake
+		cheesecake = Bitmap.createScaledBitmap(cheesecake, ballRad*4, ballRad*4, true);
 	}
 
 	/**
@@ -60,8 +76,12 @@ public class TestAnimator implements Animator {
 	private float[] randomVelocity() {
 		int x,y;
 		x = random.nextBoolean() ? -1 : 1; // left or right
+		float xSpd = (random.nextInt(10)+20);
 		y = random.nextBoolean() ? -1 : 1; // up or down
-		return new float[] {x*(random.nextInt(20)+10),y*(random.nextInt(20)+10)};
+		float ySpd = (random.nextInt(20)+10);
+		//below is the speed of the actual paddle for the AI depending on the mode of the game
+		opponentSpeed = mainActivity.technoActivated ? xSpd + 17.0f : xSpd - 9.0f;
+		return new float[] {x*xSpd,y*ySpd};
 	}
 
 	/**
@@ -97,14 +117,31 @@ public class TestAnimator implements Animator {
 		//this is drawing the actual walls for the surface view
 		g.drawRect(0,0,wallWidth,height,wallPaint); //left wall
 		g.drawRect(width-wallWidth,0,width,height,wallPaint); //right wall
-		g.drawRect(0,0,width,wallWidth,wallPaint); //top wall
+
+		//opponent
+		Paint opponentPaint = new Paint();
+		int opponentColor = mainActivity.technoActivated ?
+				//The Color of the oponent is red
+				0xFF000000 + random.nextInt(0x00FFFFFF + 1) : 0xFFFF0000;
+		opponentPaint.setColor(opponentColor);
+
+		g.drawRect(paddlePosOpponent - halfPaddleSizeOpponent,
+				0,
+				paddlePosOpponent + halfPaddleSizeOpponent,
+				paddleWidth,
+				opponentPaint);
 
 		//this is drawing the actual block used by the player
 		Paint paddlepaint = new Paint();
 		int paddlecolor = mainActivity.technoActivated ?
 				0xFF000000 + random.nextInt(0x00FFFFFF + 1) : 0xFF00FFFF;
 		paddlepaint.setColor(paddlecolor);
-		g.drawRect(width/2- halfPaddleSize,height-paddleWidth,width/2+ halfPaddleSize,height,paddlepaint);
+
+		g.drawRect(paddlePos - halfPaddleSize,
+				height - paddleWidth,
+				paddlePos + halfPaddleSize,
+				height,
+				paddlepaint);
 
 		// Draw the ball in the correct position.
 		Paint ballPaint = new Paint();
@@ -112,6 +149,64 @@ public class TestAnimator implements Animator {
 				0xFF000000 + random.nextInt(0x00FFFFFF + 1) : 0xFF0000FF;
 		ballPaint.setColor(ballColor);
 		g.drawCircle(ballPos[0], ballPos[1], ballRad, ballPaint);
+
+		if(mainActivity.technoActivated)
+			g.drawBitmap(cheesecake, ballPos[0] - (float) ballRad * 2f,
+					ballPos[1] - (float) ballRad * 2f,
+					null); //The following has the png image of the cheesecake move with the ball
+	}
+
+	/**
+	 * This draws the score on the surface view of the current state of the game
+	 * @param g
+	 */
+	private void drawScore(Canvas g) {
+		float textSize = 1000.0f;
+		Paint scorePaint = new Paint();
+		int scoreColor = mainActivity.technoActivated ?
+				0x99000000 + random.nextInt(0x00FFFFFF + 1) : 0x9900FF00;
+
+		/**
+		 * External Citation
+		 *   Date:		22 March 2018
+		 *   Problem:	How to draw text on surface view?
+		 *   Resource:  https://developer.android.com/reference/android/graphics/Canvas.html
+		 *   Solution: 	Reference API
+		 */
+
+		scorePaint.setColor(scoreColor);
+		scorePaint.setTextSize(textSize);
+		Typeface scoreTypeFace = Typeface.create(scorePaint.getTypeface(),Typeface.BOLD);
+		scorePaint.setTypeface(scoreTypeFace);
+		scorePaint.setTextAlign(Paint.Align.CENTER);
+
+		String scoreText = ""+score;
+		g.drawText(scoreText,0,scoreText.length(),width/2,height/2 + textSize/3,scorePaint);
+	}
+
+	/**
+	 * This here creates the level of complexity of the AI
+	 *
+	 */
+	private void AICalculations(){
+		//ball is to left of opponent
+		if(paddlePosOpponent < ballPos[0]){
+			paddlePosOpponent += opponentSpeed;
+		}
+		//ball is to right of opponent
+		if(paddlePosOpponent > ballPos[0]){
+			paddlePosOpponent -= opponentSpeed;
+		}
+		//else stay square
+
+		//clamp right
+		if(paddlePosOpponent > width - wallWidth - halfPaddleSizeOpponent) {
+			paddlePosOpponent = width - wallWidth - halfPaddleSizeOpponent;
+		}
+		//clamp left
+		if(paddlePosOpponent < wallWidth + halfPaddleSizeOpponent) {
+			paddlePosOpponent = wallWidth + halfPaddleSizeOpponent;
+		}
 	}
 
 	/**
@@ -125,12 +220,25 @@ public class TestAnimator implements Animator {
 		height = animationSurface.getHeight();
 		halfPaddleSize = mainActivity.isBigPaddle ? 370 : 100;
 
+		drawScore(g);
 		drawWallAndPaddle(g);
 
 		// collision detection
 		// check if hit top, ball going up and position is less than wall plus ballrad
-		if(ballVel[1] < 0 && ballPos[1] < wallWidth + ballRad) {
+		if(ballVel[1] < 0
+				&& ballPos[1] < paddleWidth + ballRad
+				&& ballPos[0] > paddlePosOpponent - halfPaddleSizeOpponent
+				&& ballPos[0] < paddlePosOpponent + halfPaddleSizeOpponent) {
 			ballVel[1] *= -1;
+		}
+		// ball goes past paddle
+		else if (ballVel[1] < 0 && ballPos[1] < 0 - ballRad) {
+			// set random location within walls
+			ballPos = new float[] {random.nextFloat()*(width-wallWidth-ballRad)+wallWidth+ballRad,
+					random.nextFloat()*(height-wallWidth-ballRad)+wallWidth+ballRad};
+			ballVel = randomVelocity();
+			isReady = false;
+			score++;
 		}
 		// check if hit left, ball going left and pos x < wallwid and ballrad
 		else if (ballVel[0] < 0 && ballPos[0] < wallWidth + ballRad) {
@@ -140,13 +248,14 @@ public class TestAnimator implements Animator {
 		else if (ballVel[0] > 0 && ballPos[0] > width - wallWidth - ballRad) {
 			ballVel[0] *= -1;
 		}
-		// bot, flip y velocity if hit paddle
+		//hits top of paddle
 		else if (ballVel[1] > 0
 				&& ballPos[1] > height - paddleWidth - ballRad
-				&& ballPos[0] > width/2 - halfPaddleSize
-				&& ballPos[0] < width/2 + halfPaddleSize) {
+				&& ballPos[0] > paddlePos - halfPaddleSize
+				&& ballPos[0] < paddlePos + halfPaddleSize) {
 			ballVel[1] *= -1;
 		}
+
 		// ball goes past paddle
 		else if (ballVel[1] > 0 && ballPos[1] > height + ballRad) {
 			// set random location within walls
@@ -154,12 +263,14 @@ public class TestAnimator implements Animator {
 					random.nextFloat()*(height-wallWidth-ballRad)+wallWidth+ballRad};
 			ballVel = randomVelocity();
 			isReady = false;
+			score--;
 		}
 		else {
 			Log.i("tag", " this shouldn't happen");
 		}
 
 		kinematicsCalculations();
+		AICalculations();
 
 	}
 
@@ -213,9 +324,21 @@ public class TestAnimator implements Animator {
 	 * Launch ball when screen is clicked
 	 * @param event touch event
 	 */
-	public void onTouch(MotionEvent event)
-	{
+	public void onTouch(MotionEvent event)	{
 		isReady = true;
+
+		float temp = event.getX();
+		//this is the left wall for the clamp
+		if(temp > width - wallWidth - halfPaddleSize) {
+			paddlePos = width - wallWidth - halfPaddleSize;
+		}
+		//this is the right wall for the clamp
+		else if(temp < wallWidth + halfPaddleSize) {
+			paddlePos = wallWidth + halfPaddleSize;
+		}
+		else {
+			paddlePos = temp;
+		}
 	}
 	
 	

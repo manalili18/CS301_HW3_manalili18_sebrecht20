@@ -11,8 +11,11 @@ import android.widget.Button;
  * New tick time changed from 30ms to 1ms.
  *
  * Enhancements:
- *  - [5%] When a ball leaves the field of play, don't add a new ball until the user indicates
- *         she is ready by tapping the screen or a button for that purpose.
+ *  - [5%] Keep running score. When ball passes opponents paddle, add one. When ball passes own
+ *         paddle, subtract one.
+ *
+ *  TODO: Change Enhancements
+ *
  *  - [5%] Allow the user to change the size of the paddle (for “beginner” vs. “expert” mode)
  *         in some manner.
  *  - [7.5%] Approved enhancement (TechnoMode). Ball accelerates every tick. Walls, paddle, and ball
@@ -52,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
         // Connect the animation surface with the animator
         AnimationSurface mySurface = (AnimationSurface) this
                 .findViewById(R.id.animationSurface);
-        mySurface.setAnimator(new TestAnimator(mySurface,this));
+        mySurface.setAnimator(new PongAnimator(mySurface,this));
 
         // Connect the buttons
         Button paddle = (Button) this.findViewById(R.id.paddle);
