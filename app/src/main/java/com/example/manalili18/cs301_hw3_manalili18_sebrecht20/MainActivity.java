@@ -13,15 +13,9 @@ import android.widget.Button;
  * Enhancements:
  *  - [5%] Keep running score. When ball passes opponents paddle, add one. When ball passes own
  *         paddle, subtract one.
- *
- *  TODO: Change Enhancements
- *
- *  - [5%] Allow the user to change the size of the paddle (for “beginner” vs. “expert” mode)
- *         in some manner.
- *  - [7.5%] Approved enhancement (TechnoMode). Ball accelerates every tick. Walls, paddle, and ball
- *           color change every tick.
- *  - [5%] (Pending Approval) Cross-compatibility with Pixel C, Nexus 9, and other android devices.
- *         Also playable in horizontal and vertical modes.
+ *  - [5%] Change ball appearance during TechnoMode. Draws a .png over the ball of a cheesecake.
+ *         Physics stays the same.
+ *  - [15%] Computer player on opposite side of player. Misses sometimes.
  *
  *  Instructions:
  *   - Change paddle size by clicking Change Paddle button.
