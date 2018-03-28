@@ -8,7 +8,7 @@ import java.util.Random;
 
 
 /**
- * class that animates a ball bouncing off of walls and a paddle
+ * class that animates a ball bouncing off of walls and two paddles
  * 
  * @author Steve Vegdahl
  * @author Andrew Nuxoll
@@ -81,11 +81,13 @@ public class PongAnimator implements Animator {
 		float ySpd = (random.nextInt(20)+10);
 		//below is the speed of the actual paddle for the AI depending on the mode of the game
 		opponentSpeed = mainActivity.technoActivated ? xSpd + 17.0f : xSpd - 9.0f;
+
 		return new float[] {x*xSpd,y*ySpd};
 	}
 
 	/**
 	 * Interval between animation frames: .01 seconds
+     * This has been changed from .30 seconds to .01 to make graphics much smoother.
 	 * 
 	 * @return the time interval between frames, in milliseconds.
 	 */
@@ -210,7 +212,8 @@ public class PongAnimator implements Animator {
 	}
 
 	/**
-	 * Action to perform on clock tick
+	 * Action to perform on clock tick. On every frame the board is drawn with paddles and ball.
+     * On every frame, new position of paddles and ball is calculated.
 	 * 
 	 * @param g the graphics object on which to draw
 	 */
@@ -255,7 +258,6 @@ public class PongAnimator implements Animator {
 				&& ballPos[0] < paddlePos + halfPaddleSize) {
 			ballVel[1] *= -1;
 		}
-
 		// ball goes past paddle
 		else if (ballVel[1] > 0 && ballPos[1] > height + ballRad) {
 			// set random location within walls
@@ -271,7 +273,6 @@ public class PongAnimator implements Animator {
 
 		kinematicsCalculations();
 		AICalculations();
-
 	}
 
 	/**
@@ -300,7 +301,6 @@ public class PongAnimator implements Animator {
 			ballVel[1] += ballAcc[1];
 		}
 	}
-
 
 	/**
 	 * Tells that we never pause.
@@ -340,7 +340,4 @@ public class PongAnimator implements Animator {
 			paddlePos = temp;
 		}
 	}
-	
-	
-
-}//class TextAnimator
+}

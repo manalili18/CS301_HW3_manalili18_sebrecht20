@@ -17,11 +17,12 @@ import android.widget.Button;
  *         Physics stays the same.
  *  - [15%] Computer player on opposite side of player. Misses sometimes.
  *
- *  Instructions:
+ *  Instructions / Other Details:
  *   - Change paddle size by clicking Change Paddle button.
  *   - Toggle TechnoMode by clicking Techno Mode button.
  *   - Launch ball from stasis by clicking on the canvas.
  *   - During ball stasis in Techno Mode ball gradually revs up (acceleration adds to velocity).
+ *   - AI Opponent is better (faster) in Techno Mode.
  *
  * @author Steve Vegdahl
  * @author Andrew Nuxoll
